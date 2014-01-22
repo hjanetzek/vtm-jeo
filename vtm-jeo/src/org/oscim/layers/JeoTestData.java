@@ -53,6 +53,7 @@ public class JeoTestData {
 		}
 
 		if (memory) {
+			@SuppressWarnings("resource")
 			MemWorkspace mem = new MemWorkspace();
 
 			//mem.put("layer", data);
@@ -79,6 +80,7 @@ public class JeoTestData {
 	public static Dataset getMemWorkspace(String layer) {
 		GeomBuilder gb = new GeomBuilder(4326);
 
+		@SuppressWarnings("resource")
 		MemWorkspace mem = new MemWorkspace();
 		Schema schema = new SchemaBuilder(layer)
 		    .field("geometry", Geometry.class)
@@ -90,11 +92,9 @@ public class JeoTestData {
 		try {
 			data = mem.create(schema);
 		} catch (UnsupportedOperationException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		} catch (IOException e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 			return null;
 		}

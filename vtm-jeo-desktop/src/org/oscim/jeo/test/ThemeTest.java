@@ -1,9 +1,8 @@
 package org.oscim.jeo.test;
 
 import org.oscim.gdx.GdxMapApp;
-import org.oscim.layers.GenericLayer;
+import org.oscim.layers.TileGridLayer;
 import org.oscim.layers.tile.vector.VectorTileLayer;
-import org.oscim.renderer.GridRenderer;
 import org.oscim.renderer.MapRenderer;
 import org.oscim.theme.carto.RenderTheme;
 import org.oscim.tiling.source.common.UrlTileSource;
@@ -30,6 +29,6 @@ public class ThemeTest extends GdxMapApp {
 		// mMapLayer.getTileLayer()));
 		// mMap.getLayers().add(new JeoMapLayer(mMap));
 
-		mMap.getLayers().add(new GenericLayer(mMap, new GridRenderer()));
+		mMap.getLayers().add(new TileGridLayer(mMap));
 	}
 }
