@@ -3,7 +3,7 @@ package org.oscim.jeo.test;
 import org.jeo.data.VectorDataset;
 import org.oscim.gdx.GdxMap;
 import org.oscim.gdx.GdxMapApp;
-import org.oscim.layers.JeoMapLayer;
+import org.oscim.layers.JeoVectorLayer;
 import org.oscim.layers.JeoTestData;
 import org.oscim.layers.TileGridLayer;
 import org.oscim.renderer.MapRenderer;
@@ -12,14 +12,14 @@ import com.badlogic.gdx.Input;
 
 public class LayerTest extends GdxMap {
 
-	JeoMapLayer mLayer;
+	JeoVectorLayer mLayer;
 
 	@Override
 	public void createLayers() {
 		MapRenderer.setBackgroundColor(0xff505050);
 		//mMap.getLayers().add(new BitmapTileLayer(mMap, new DefaultSources.ImagicoLandcover()));
 
-		mLayer = new JeoMapLayer(mMap,
+		mLayer = new JeoVectorLayer(mMap,
 		                         (VectorDataset) JeoTestData.getJsonData("states.json",
 		                                                                 true),
 		                         //JeoTestData.getMemWorkspace("things"),
