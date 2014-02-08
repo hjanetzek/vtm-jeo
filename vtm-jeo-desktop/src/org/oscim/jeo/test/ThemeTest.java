@@ -29,6 +29,6 @@ public class ThemeTest extends GdxMapApp {
 		// mMapLayer.getTileLayer()));
 		// mMap.getLayers().add(new JeoMapLayer(mMap));
 
-		mMap.getLayers().add(new TileGridLayer(mMap));
+		mMap.layers().add(new TileGridLayer(mMap));
 	}
 }

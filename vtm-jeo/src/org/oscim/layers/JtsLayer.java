@@ -103,10 +103,10 @@ public abstract class JtsLayer extends Layer implements UpdateListener {
 		@Override
 		public boolean doWork(Task t) {
 			Envelope b;
-			Viewport v = mMap.getViewport();
+			Viewport v = mMap.viewport();
 
 			synchronized (v) {
-				BoundingBox bbox = v.getViewBox();
+				BoundingBox bbox = v.getBBox();
 				b = new Envelope(bbox.getMinLongitude(), bbox.getMaxLongitude(),
 				                 bbox.getMinLatitude(), bbox.getMaxLatitude());
 

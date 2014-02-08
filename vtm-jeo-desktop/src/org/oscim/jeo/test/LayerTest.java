@@ -25,8 +25,8 @@ public class LayerTest extends GdxMap {
 		                         //JeoTestData.getMemWorkspace("things"),
 		                         JeoTestData.getStyle());
 
-		mMap.getLayers().add(mLayer);
-		mMap.getLayers().add(new TileGridLayer(mMap));
+		mMap.layers().add(mLayer);
+		mMap.layers().add(new TileGridLayer(mMap));
 	}
 
 	@Override

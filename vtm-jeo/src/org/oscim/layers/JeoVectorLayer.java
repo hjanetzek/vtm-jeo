@@ -46,13 +46,15 @@ public class JeoVectorLayer extends JtsLayer implements UpdateListener {
 		mRenderer = new Renderer();
 	}
 
+	//private final SimplifyVW simp = new SimplifyVW();
+
 	@Override
 	protected void drawFeatures(org.oscim.layers.JtsLayer.Task t, Envelope b) {
 		// reduce lines points min distance
 		mMinX = ((b.getMaxX() - b.getMinX()) / mMap.getWidth());
 		mMinY = ((b.getMaxY() - b.getMinY()) / mMap.getHeight());
-		mMinX *= 0.05;
-		mMinY *= 0.05;
+		mMinX *= 0.01;
+		mMinY *= 0.01;
 
 		try {
 			Query q = new Query().bounds(b);
@@ -142,7 +144,7 @@ public class JeoVectorLayer extends JtsLayer implements UpdateListener {
 
 		MeshLayer mesh = t.layers.getMeshLayer(1);
 		if (mesh.area == null) {
-			mesh.area = new Area(Color.fade(Color.DKGRAY, 0.3));
+			mesh.area = new Area(Color.fade(Color.DKGRAY, 0.3f));
 		}
 
 		mGeom.clear();
@@ -159,6 +161,7 @@ public class JeoVectorLayer extends JtsLayer implements UpdateListener {
 		l2.addLine(mGeom);
 		//simp.simplify(mGeom, mTolerance * t.position.zoomLevel);
 		//simp.simplify(mGeom, mTolerance);
+
 		ll.addLine(mGeom);
 
 		mesh.addMesh(mGeom);

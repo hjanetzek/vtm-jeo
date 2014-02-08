@@ -1,6 +1,5 @@
 package org.oscim.jeo.android;
 
-import org.jeo.android.geopkg.GeoPkgWorkspace;
 import org.jeo.data.VectorDataset;
 import org.oscim.android.MapActivity;
 import org.oscim.android.MapView;
@@ -18,7 +17,7 @@ import android.os.Bundle;
 import android.os.Environment;
 
 public class TestActivity extends MapActivity {
-	GeoPkgWorkspace geopkg;
+	//GeoPkgWorkspace geopkg;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -30,14 +29,14 @@ public class TestActivity extends MapActivity {
 
 		MapRenderer.setBackgroundColor(0xff777777);
 
-		mMap.getLayers().add(new GenericLayer(mMap, new GridRenderer(8, new Line(Color.GRAY,
+		mMap.layers().add(new GenericLayer(mMap, new GridRenderer(8, new Line(Color.GRAY,
 		                                                                         1.8f,
 		                                                                         Cap.BUTT), null)));
 
 		//mMap.setBackgroundMap(new BitmapTileLayer(mMap, new StamenToner()));
 
 		String file = Environment.getExternalStorageDirectory().getAbsolutePath();
-		Layers layers = mMap.getLayers();
+		Layers layers = mMap.layers();
 		layers.add(new JeoVectorLayer(mMap,
 		                              //JeoTestData.getMemWorkspace("things"),
 		                              (VectorDataset) JeoTestData.getJsonData(file + "/states.json",
