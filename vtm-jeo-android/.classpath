@@ -10,7 +10,5 @@
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/vtm-libs"/>
 	<classpathentry combineaccessrules="false" exported="true" kind="src" path="/vtm-jeo"/>
 	<classpathentry exported="true" kind="con" path="com.android.ide.eclipse.adt.DEPENDENCIES"/>
-	<classpathentry exported="true" kind="lib" path="/jeo-android/target/jeo-android-0-SNAPSHOT-sources.jar"/>
-	<classpathentry exported="true" kind="lib" path="/jeo-android/target/jeo-android-0-SNAPSHOT.jar"/>
 	<classpathentry kind="output" path="bin/classes"/>
 </classpath>
