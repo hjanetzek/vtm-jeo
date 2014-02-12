@@ -1,6 +1,7 @@
 package org.oscim.layers;
 
 import java.io.IOException;
+import java.util.HashMap;
 
 import org.jeo.data.Query;
 import org.jeo.data.VectorDataset;
@@ -20,12 +21,13 @@ import org.oscim.renderer.elements.LineLayer;
 import org.oscim.renderer.elements.MeshLayer;
 import org.oscim.theme.styles.Area;
 import org.oscim.theme.styles.Line;
-import org.oscim.utils.TileClipper;
+import org.oscim.utils.geom.TileClipper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.LineString;
 
 public class JeoVectorLayer extends JtsLayer implements UpdateListener {
 
@@ -38,30 +40,35 @@ public class JeoVectorLayer extends JtsLayer implements UpdateListener {
 
 	private double mMinX;
 	private double mMinY;
+	protected double mDropPointDistance = 0;
 
 	public JeoVectorLayer(Map map, VectorDataset data, Style style) {
 		super(map);
 		mDataset = data;
-		mRules = style.getRules().selectById(data.getName(), true).flatten();
+
+		//mRules = style.getRules().selectById(data.getName(), true).flatten();
+		mRules = style.getRules().selectById("way", true).flatten();
+		log.debug(mRules.toString());
+
 		mRenderer = new Renderer();
 	}
 
-	//private final SimplifyVW simp = new SimplifyVW();
-
 	@Override
 	protected void drawFeatures(org.oscim.layers.JtsLayer.Task t, Envelope b) {
-		// reduce lines points min distance
-		mMinX = ((b.getMaxX() - b.getMinX()) / mMap.getWidth());
-		mMinY = ((b.getMaxY() - b.getMinY()) / mMap.getHeight());
-		mMinX *= 0.01;
-		mMinY *= 0.01;
+		if (mDropPointDistance > 0) {
+			/* reduce lines points min distance */
+			mMinX = ((b.getMaxX() - b.getMinX()) / mMap.getWidth());
+			mMinY = ((b.getMaxY() - b.getMinY()) / mMap.getHeight());
+			mMinX *= mDropPointDistance;
+			mMinY *= mDropPointDistance;
+		}
 
 		try {
 			Query q = new Query().bounds(b);
 			log.debug("query {}", b);
 
 			for (Feature f : mDataset.cursor(q)) {
-
+				//log.debug("feature {}", f);
 				RuleList rs = mRules.match(f);
 				if (rs.isEmpty())
 					continue;
@@ -70,6 +77,7 @@ public class JeoVectorLayer extends JtsLayer implements UpdateListener {
 				if (r == null)
 					continue;
 
+				//log.debug("draw feature");
 				draw(t, f, r);
 			}
 		} catch (IOException e) {
@@ -89,6 +97,10 @@ public class JeoVectorLayer extends JtsLayer implements UpdateListener {
 			case MULTIPOINT:
 				return;
 			case LINESTRING:
+				if (((LineString) g).isClosed()) {
+					drawPolygon(task, f, rule, g);
+					break;
+				}
 			case MULTILINESTRING:
 				drawLine(task, f, rule, g);
 				return;
@@ -107,7 +119,8 @@ public class JeoVectorLayer extends JtsLayer implements UpdateListener {
 
 	private void drawLine(Task t, Feature f, Rule rule, Geometry g) {
 		LineLayer ll = t.layers.getLineLayer(0);
-
+		ll.setDropDistance(0);
+		ll.heightOffset = -4.5f;
 		if (ll.line == null) {
 			RGB color = rule.color(f, CartoCSS.LINE_COLOR, RGB.black);
 			float width = rule.number(f, CartoCSS.LINE_WIDTH, 1.2f);
@@ -127,60 +140,64 @@ public class JeoVectorLayer extends JtsLayer implements UpdateListener {
 	}
 
 	private void drawPolygon(Task t, Feature f, Rule rule, Geometry g) {
-		LineLayer l2 = t.layers.getLineLayer(2);
-		if (l2.line == null) {
-			l2.line = new Line(2, Color.BLUE, 1);
-			l2.width = 1.5f;
+
+		int level = 0;
+
+		/* not sure if one could match these geojson properties with cartocss */
+		Object o = f.get("@relations");
+		if (o instanceof HashMap) {
+			@SuppressWarnings("unchecked")
+			HashMap<String, Object> tags = (HashMap<String, Object>) o;
+			@SuppressWarnings("unchecked")
+			HashMap<String, Object> reltags = (HashMap<String, Object>) tags.get("reltags");
+
+			if (reltags != null) {
+				o = reltags.get("level");
+				if (o instanceof String) {
+					//log.debug("got level {}", o);
+					level = Integer.parseInt((String) o);
+				}
+			}
 		}
-		LineLayer ll = t.layers.getLineLayer(3);
+
+		LineLayer ll = t.layers.getLineLayer(level * 2 + 1);
 
 		if (ll.line == null) {
-			//RGB color = rule.color(f, CartoCSS.POLYGON_FILL, RGB.red);
-			//float width = rule.number(f, CartoCSS.LINE_WIDTH, 1.2f);
-			//ll.line = new Line(2, color(color), width);
-			ll.line = new Line(2, Color.RED, 1);
-			ll.width = 1.5f;
+			float width = rule.number(f, CartoCSS.LINE_WIDTH, 1.2f);
+			ll.line = new Line(0, Color.rainbow((level + 1) / 10f), width);
+			ll.width = width;
+			ll.heightOffset = level * 4;
 		}
 
-		MeshLayer mesh = t.layers.getMeshLayer(1);
+		MeshLayer mesh = t.layers.getMeshLayer(level * 2);
 		if (mesh.area == null) {
-			mesh.area = new Area(Color.fade(Color.DKGRAY, 0.3f));
+			RGB color = rule.color(f, CartoCSS.POLYGON_FILL, RGB.red);
+			mesh.area = new Area(color(color));
+			//mesh.area = new Area(Color.fade(Color.DKGRAY, 0.1f));
+			mesh.heightOffset = level * 4f;
 		}
 
 		mGeom.clear();
 		mGeom.startPolygon();
 
-		CoordinatePath p = CoordinatePath.create(g).generalize(mMinX, mMinY);
+		CoordinatePath p = CoordinatePath.create(g);
+		if (mMinX > 0 || mMinY > 0)
+			p.generalize(mMinX, mMinY);
+
 		if (transformPath(t.position, mGeom, p) < 3)
 			return;
 
 		if (!mClipper.clip(mGeom))
 			return;
 
-		//log.debug("add poly " + mGeom.pointPos);
-		l2.addLine(mGeom);
-		//simp.simplify(mGeom, mTolerance * t.position.zoomLevel);
-		//simp.simplify(mGeom, mTolerance);
-
 		ll.addLine(mGeom);
-
 		mesh.addMesh(mGeom);
 	}
 
-	//private final SimplifyVW simp = new SimplifyVW();
-
-	public int color(RGB rgb) {
+	public static int color(RGB rgb) {
 		return rgb.getAlpha() << 24
 		        | rgb.getRed() << 16
 		        | rgb.getGreen() << 8
 		        | rgb.getBlue();
 	}
-
-	float mTolerance = 4;
-
-	public void changeTolerance(boolean b) {
-		mTolerance += b ? 0.1 : -0.1;
-		log.debug("" + mTolerance);
-	}
-
 }
