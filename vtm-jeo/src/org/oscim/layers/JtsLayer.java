@@ -12,19 +12,31 @@ import org.oscim.map.Viewport;
 import org.oscim.renderer.ElementRenderer;
 import org.oscim.renderer.MapRenderer.Matrices;
 import org.oscim.renderer.elements.ElementLayers;
+import org.oscim.renderer.elements.LineLayer;
+import org.oscim.renderer.elements.MeshLayer;
 import org.oscim.utils.async.SimpleWorker;
+import org.oscim.utils.geom.TileClipper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.Envelope;
+import com.vividsolutions.jts.geom.Geometry;
 
 public abstract class JtsLayer extends Layer implements UpdateListener {
 	public static final Logger log = LoggerFactory.getLogger(JeoVectorLayer.class);
 
 	private final Worker mWorker;
 
-	private final static double UNSCALE_COORD = 8;
+	private final static double UNSCALE_COORD = 4;
+
+	protected boolean mUpdate = true;
+
+	protected final GeometryBuffer mGeom = new GeometryBuffer(128, 4);
+	protected final TileClipper mClipper = new TileClipper(-1024, -1024, 1024, 1024);
+
+	protected double mMinX;
+	protected double mMinY;
 
 	public JtsLayer(Map map) {
 		super(map);
@@ -41,12 +53,20 @@ public abstract class JtsLayer extends Layer implements UpdateListener {
 
 	@Override
 	public void onMapUpdate(MapPosition pos, boolean changed, boolean clear) {
-		if (changed || clear) {
-			mWorker.submit(10);
+		if (mUpdate) {
+			mUpdate = false;
+			mWorker.submit(0);
+		} else if (changed || clear) {
+			// throttle worker
+			mWorker.submit(100);
 		}
 	}
 
-	abstract protected void drawFeatures(Task t, Envelope b);
+	public void update() {
+		mWorker.submit(0);
+	}
+
+	abstract protected void processFeatures(Task t, Envelope b);
 
 	protected int transformPath(MapPosition pos, GeometryBuffer g, CoordinatePath path) {
 
@@ -82,6 +102,34 @@ public abstract class JtsLayer extends Layer implements UpdateListener {
 		return cnt;
 	}
 
+	protected void addPolygon(Task t, Geometry g, MeshLayer ml, LineLayer ll) {
+		mGeom.clear();
+		mGeom.startPolygon();
+
+		CoordinatePath p = CoordinatePath.create(g);
+		if (mMinX > 0 || mMinY > 0)
+			p.generalize(mMinX, mMinY);
+
+		if (transformPath(t.position, mGeom, p) < 3)
+			return;
+
+		if (!mClipper.clip(mGeom))
+			return;
+
+		ll.addLine(mGeom);
+		ml.addMesh(mGeom);
+	}
+
+	protected void addLine(Task t, Geometry g, LineLayer ll) {
+		mGeom.clear();
+		mGeom.startLine();
+
+		CoordinatePath p = CoordinatePath.create(g);
+		transformPath(t.position, mGeom, p);
+
+		ll.addLine(mGeom);
+	}
+
 	class Task {
 		ElementLayers layers = new ElementLayers();
 		MapPosition position = new MapPosition();
@@ -96,7 +144,8 @@ public abstract class JtsLayer extends Layer implements UpdateListener {
 		/** automatically in sync with worker thread */
 		@Override
 		public void cleanup(Task t) {
-			t.layers.clear();
+			if (t.layers != null)
+				t.layers.clear();
 		}
 
 		/** running on worker thread */
@@ -113,7 +162,11 @@ public abstract class JtsLayer extends Layer implements UpdateListener {
 				v.getMapPosition(t.position);
 			}
 
-			drawFeatures(t, b);
+			double scale = t.position.scale * Tile.SIZE;
+
+			t.position.x = (long) (t.position.x * scale) / scale;
+			t.position.y = (long) (t.position.y * scale) / scale;
+			processFeatures(t, b);
 
 			mMap.render();
 			return true;
@@ -135,7 +188,8 @@ public abstract class JtsLayer extends Layer implements UpdateListener {
 
 			mMapPosition.copy(t.position);
 			mMapPosition.setScale(mMapPosition.scale / UNSCALE_COORD);
-			layers.setBaseLayers(t.layers.getBaseLayers());
+
+			layers.setFrom(t.layers);
 
 			compile();
 			//log.debug("is ready " + isReady() + " " + layers.getSize());
