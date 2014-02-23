@@ -1,6 +1,8 @@
 package org.oscim.test;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -18,31 +20,32 @@ import org.jeo.geojson.GeoJSONDataset;
 import org.jeo.geojson.GeoJSONReader;
 import org.jeo.geom.GeomBuilder;
 import org.jeo.map.Style;
+import org.oscim.layers.OSMIndoorLayer;
+import org.oscim.layers.tile.vector.BuildingLayer;
+import org.oscim.layers.tile.vector.VectorTileLayer;
+import org.oscim.map.Map;
+import org.oscim.renderer.MapRenderer;
+import org.oscim.tiling.source.oscimap4.OSciMap4TileSource;
 
 import com.vividsolutions.jts.geom.Geometry;
 
 public class JeoTest {
 
-	//	public static void indoorSketch(Map map, String file) {
-	//		MapRenderer.setBackgroundColor(0xff909090);
-	//		VectorTileLayer baseLayer = map.setBaseMap(new OSciMap4TileSource());
-	//		map.layers().add(new BuildingLayer(map, baseLayer));
-	//		map.setTheme(InternalRenderTheme.TRONRENDER);
-	//
-	//		//map.setBackgroundMap(new BitmapTileLayer(map, new DefaultSources.OSMTransport()));
-	//		//map.setBackgroundMap(new BitmapTileLayer(map, new DefaultSources.StamenToner()));
-	//
-	//		//VectorDataset data = (VectorDataset) JeoTest.getJsonData(file, true);
-	//		VectorDataset data = null;
-	//		try {
-	//			data = JeoTest.readGeoJson(new FileInputStream(new File(file)));
-	//		} catch (FileNotFoundException e) {
-	//			e.printStackTrace();
-	//		}
-	//
-	//		Style style = JeoTest.getStyle();
-	//		map.layers().add(new JeoVectorLayer(map, data, style));
-	//	}
+	public static void indoorSketch(Map map, String file) {
+		MapRenderer.setBackgroundColor(0xff909090);
+		VectorTileLayer baseLayer = map.setBaseMap(new OSciMap4TileSource());
+		map.layers().add(new BuildingLayer(map, baseLayer));
+
+		VectorDataset data = null;
+		try {
+			data = JeoTest.readGeoJson(new FileInputStream(new File(file)));
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		}
+
+		Style style = JeoTest.getStyle();
+		map.layers().add(new OSMIndoorLayer(map, data, style));
+	}
 
 	public static Style getStyle() {
 		Style style = null;
@@ -51,6 +54,12 @@ public class JeoTest {
 			style = Carto.parse("" +
 			        "#way {" +
 			        "  line-width: 2;" +
+			        "  line-color: #c80;" +
+			        "  polygon-fill: #44111111;" +
+			        "  " +
+			        "}" +
+			        "#states {" +
+			        "  line-width: 2.2;" +
 			        "  line-color: #c80;" +
 			        "  polygon-fill: #44111111;" +
 			        "  " +

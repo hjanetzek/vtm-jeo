@@ -7,10 +7,10 @@ import org.jeo.data.Tile;
 import org.jeo.data.TileDataset;
 import org.oscim.backend.CanvasAdapter;
 import org.oscim.backend.canvas.Bitmap;
-import org.oscim.tiling.MapTile;
-import org.oscim.tiling.source.ITileDataSink;
-import org.oscim.tiling.source.ITileDataSource;
-import org.oscim.tiling.source.TileSource;
+import org.oscim.layers.tile.MapTile;
+import org.oscim.tiling.ITileDataSink;
+import org.oscim.tiling.ITileDataSource;
+import org.oscim.tiling.TileSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

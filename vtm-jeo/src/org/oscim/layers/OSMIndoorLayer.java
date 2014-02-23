@@ -59,7 +59,6 @@ public class OSMIndoorLayer extends JeoVectorLayer {
 			RGB color = rule.color(f, CartoCSS.LINE_COLOR, RGB.black);
 			float width = rule.number(f, CartoCSS.LINE_WIDTH, 1.2f);
 			ll.line = new Line(0, JeoUtils.color(color), width);
-			ll.width = width;
 			ll.heightOffset = level * 4;
 			ll.setDropDistance(0);
 		}
@@ -80,7 +79,6 @@ public class OSMIndoorLayer extends JeoVectorLayer {
 				color = Color.fade(color, 0.1f);
 
 			ll.line = new Line(0, color, width);
-			ll.width = width;
 			ll.heightOffset = level * 4;
 			ll.setDropDistance(0);
 		}

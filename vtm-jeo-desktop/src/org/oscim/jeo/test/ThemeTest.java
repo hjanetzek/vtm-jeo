@@ -5,7 +5,7 @@ import org.oscim.layers.TileGridLayer;
 import org.oscim.layers.tile.vector.VectorTileLayer;
 import org.oscim.renderer.MapRenderer;
 import org.oscim.theme.carto.RenderTheme;
-import org.oscim.tiling.source.common.UrlTileSource;
+import org.oscim.tiling.source.UrlTileSource;
 import org.oscim.tiling.source.oscimap4.OSciMap4TileSource;
 
 public class ThemeTest extends GdxMapApp {

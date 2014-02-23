@@ -15,7 +15,7 @@ import org.oscim.layers.tile.vector.VectorTileLayer;
 import org.oscim.layers.tile.vector.labeling.LabelLayer;
 import org.oscim.renderer.MapRenderer;
 import org.oscim.test.JeoTest;
-import org.oscim.theme.InternalRenderTheme;
+import org.oscim.theme.VtmThemes;
 import org.oscim.tiling.source.oscimap4.OSciMap4TileSource;
 import org.oscim.utils.IOUtils;
 import org.slf4j.Logger;
@@ -71,10 +71,16 @@ public class TestActivity extends MapActivity {
 		VectorTileLayer baseLayer = mMap.setBaseMap(new OSciMap4TileSource());
 		mMap.layers().add(new BuildingLayer(mMap, baseLayer));
 		mMap.layers().add(new LabelLayer(mMap, baseLayer));
-		mMap.setTheme(InternalRenderTheme.TRON2);
+		mMap.setTheme(VtmThemes.TRON2);
 
 		mMap.setMapPosition(49.417, 8.673, 1 << 17);
-		//mMap.setMapPosition(53.5620092, 9.9866457, 1 << 16);
+		//	mMap.setMapPosition(53.5620092, 9.9866457, 1 << 16);
+
+		//	mMap.layers().add(new TileGridLayer(mMap));
+		//	String file = Environment.getExternalStorageDirectory().getAbsolutePath();
+		//	VectorDataset data = (VectorDataset) JeoTest.getJsonData(file + "/states.json", true);
+		//	Style style = JeoTest.getStyle();
+		//	mMap.layers().add(new JeoVectorLayer(mMap, data, style));
 	}
 
 	void loadJson(InputStream is) {
@@ -103,15 +109,20 @@ public class TestActivity extends MapActivity {
 		});
 	}
 
-	public void shift(){
+	boolean mShift = true;
+
+	public void shift() {
+		if (!mShift)
+			return;
+
 		mMap.postDelayed(new Runnable() {
 
 			@Override
 			public void run() {
-				for (int i = 0; i < 10; i++){
-					if (mIndoorLayer.activeLevels[i]){
+				for (int i = 0; i < 10; i++) {
+					if (mIndoorLayer.activeLevels[i]) {
 						mIndoorLayer.activeLevels[i] = false;
-						mIndoorLayer.activeLevels[(i+1)%9] = true;
+						mIndoorLayer.activeLevels[(i + 1) % 9] = true;
 						mIndoorLayer.update();
 						break;
 					}
@@ -123,8 +134,11 @@ public class TestActivity extends MapActivity {
 	}
 
 	public void onClick(View v) {
+		mShift = false;
+
 		if (mIndoorLayer == null)
 			return;
+
 		int i = 0;
 
 		if (v instanceof ToggleButton) {

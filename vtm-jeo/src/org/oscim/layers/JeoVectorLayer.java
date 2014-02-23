@@ -6,38 +6,47 @@ import org.jeo.data.Query;
 import org.jeo.data.VectorDataset;
 import org.jeo.feature.Feature;
 import org.jeo.geom.Geom;
+import org.jeo.map.CartoCSS;
+import org.jeo.map.RGB;
 import org.jeo.map.Rule;
 import org.jeo.map.RuleList;
 import org.jeo.map.Style;
+import org.oscim.jeo.JeoUtils;
 import org.oscim.map.Map;
+import org.oscim.renderer.elements.LineLayer;
+import org.oscim.renderer.elements.MeshLayer;
+import org.oscim.theme.styles.Area;
+import org.oscim.theme.styles.Line;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.vividsolutions.jts.geom.Envelope;
 import com.vividsolutions.jts.geom.Geometry;
+import com.vividsolutions.jts.geom.LineString;
 
-public abstract class JeoVectorLayer extends JtsLayer {
+public class JeoVectorLayer extends JtsLayer {
 
 	public static final Logger log = LoggerFactory.getLogger(JeoVectorLayer.class);
+	static final boolean dbg = false;
 
 	private final VectorDataset mDataset;
 	private final RuleList mRules;
 
-	protected double mDropPointDistance = 0;
+	protected double mDropPointDistance = 0.01;
 
 	public JeoVectorLayer(Map map, VectorDataset data, Style style) {
 		super(map);
 		mDataset = data;
 
-		//mRules = style.getRules().selectById(data.getName(), true).flatten();
-		mRules = style.getRules().selectById("way", true).flatten();
+		mRules = style.getRules().selectById(data.getName(), true).flatten();
+		//mRules = style.getRules().selectById("way", true).flatten();
 		log.debug(mRules.toString());
 
 		mRenderer = new Renderer();
 	}
 
 	@Override
-	protected void processFeatures(org.oscim.layers.JtsLayer.Task t, Envelope b) {
+	protected void processFeatures(Task t, Envelope b) {
 		if (mDropPointDistance > 0) {
 			/* reduce lines points min distance */
 			mMinX = ((b.getMaxX() - b.getMinX()) / mMap.getWidth());
@@ -48,10 +57,11 @@ public abstract class JeoVectorLayer extends JtsLayer {
 
 		try {
 			Query q = new Query().bounds(b);
-			log.debug("query {}", b);
-
+			if (dbg)
+				log.debug("query {}", b);
 			for (Feature f : mDataset.cursor(q)) {
-				//log.debug("feature {}", f);
+				if (dbg)
+					log.debug("feature {}", f);
 
 				RuleList rs = mRules.match(f);
 				if (rs.isEmpty())
@@ -96,9 +106,45 @@ public abstract class JeoVectorLayer extends JtsLayer {
 		}
 	}
 
-	protected abstract void addLine(Task t, Feature f, Rule rule, Geometry g);
+	protected void addLine(Task t, Feature f, Rule rule, Geometry g) {
 
-	protected abstract void addPolygon(Task t, Feature f, Rule rule, Geometry g);
+		if (((LineString) g).isClosed()) {
+			addPolygon(t, f, rule, g);
+			return;
+		}
 
-	protected abstract void addPoint(Task t, Feature f, Rule rule, Geometry g);
+		LineLayer ll = t.layers.getLineLayer(2);
+		if (ll.line == null) {
+			RGB color = rule.color(f, CartoCSS.LINE_COLOR, RGB.black);
+			float width = rule.number(f, CartoCSS.LINE_WIDTH, 1.2f);
+			ll.line = new Line(0, JeoUtils.color(color), width);
+			ll.setDropDistance(0.5f);
+		}
+
+		addLine(t, g, ll);
+	}
+
+	protected void addPolygon(Task t, Feature f, Rule rule, Geometry g) {
+
+		LineLayer ll = t.layers.getLineLayer(1);
+
+		if (ll.line == null) {
+			float width = rule.number(f, CartoCSS.LINE_WIDTH, 1.2f);
+			RGB color = rule.color(f, CartoCSS.LINE_COLOR, RGB.black);
+			ll.line = new Line(0, JeoUtils.color(color), width);
+			ll.setDropDistance(0.5f);
+		}
+
+		MeshLayer mesh = t.layers.getMeshLayer(0);
+		if (mesh.area == null) {
+			int color = JeoUtils.color(rule.color(f, CartoCSS.POLYGON_FILL, RGB.red));
+			mesh.area = new Area(color);
+		}
+
+		addPolygon(t, g, mesh, ll);
+	}
+
+	protected void addPoint(Task t, Feature f, Rule rule, Geometry g) {
+
+	}
 }

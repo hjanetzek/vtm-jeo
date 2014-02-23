@@ -1,10 +1,10 @@
 package org.oscim.layers;
 
 import org.oscim.layers.tile.BitmapTileLayer;
+import org.oscim.layers.tile.MapTile;
+import org.oscim.layers.tile.TileLoader;
+import org.oscim.layers.tile.TileManager;
 import org.oscim.map.Map;
-import org.oscim.tiling.MapTile;
-import org.oscim.tiling.TileLoader;
-import org.oscim.tiling.TileManager;
 import org.oscim.tiling.source.bitmap.BitmapTileSource;
 
 public class JeoTileLayer extends BitmapTileLayer {

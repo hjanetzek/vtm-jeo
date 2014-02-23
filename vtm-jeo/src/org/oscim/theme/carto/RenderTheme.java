@@ -257,4 +257,10 @@ public class RenderTheme implements IRenderTheme {
 		t.matchElement(GeometryType.POLY, e.tags, 15);
 	}
 
+	@Override
+	public void updateInstructions() {
+		// TODO Auto-generated method stub
+
+	}
+
 }
