@@ -15,3 +15,8 @@ dependencies {
     exclude group: 'org.slf4j', module: 'slf4j-jdk14'
   }
 }
+
+eclipse.classpath.file.whenMerged { classpath ->
+  classpath.entries.findAll { entry ->
+    entry.path.contains('vtm-0.5.9-SNAPSHOT.jar') }*.exported = false
+}
