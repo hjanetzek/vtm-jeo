@@ -1,7 +1,21 @@
-### Experimental jeo backend for vtm
+### Experimental Jeo layers for VTM
+
+```
+export ANDROID_HOME=/path/to/android-sdk
+```
+
+#### Run the Android example
+```
+./gradlew :vtm-jeo-android:run
+```
+
+#### Run the Desktop example
+```
+./gradlew :vtm-jeo-desktop:run
+```
 
 
-Setup Eclipse project (clone 'vtm-jeo' in 'vtm' directory):
+#### Setup Eclipse project (clone 'vtm-jeo' in 'vtm' directory):
 ```
 git clone --recursive https://github.com/hjanetzek/vtm
 cd vtm
