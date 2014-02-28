@@ -1,0 +1,35 @@
+buildscript {
+  repositories {
+    mavenCentral()
+    //mavenLocal()
+  }
+
+  dependencies {
+    classpath 'org.gradle.api.plugins:gradle-nexus-plugin:0.3'
+  }
+}
+
+allprojects {
+  apply plugin: 'idea'
+
+  group = 'org.oscim'
+  version = '0.1.0-SNAPSHOT'
+
+  repositories {
+    mavenCentral()
+    maven { url 'https://github.com/hjanetzek/maven-repo/raw/master/' }
+    mavenLocal()
+  }
+}
+
+subprojects {
+  apply plugin: 'eclipse'
+
+  task copySettings(type: Copy) {
+    from "$rootDir/eclipse"
+    into ".settings"
+    include '**/*'
+  }
+
+  eclipseProject.dependsOn copySettings
+}

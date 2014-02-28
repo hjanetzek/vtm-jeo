@@ -1,0 +1,17 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+sourceSets {
+  main.java.srcDirs = ['src']
+  main.resources.srcDirs = ['src']
+}
+
+dependencies {
+  compile 'org.oscim:vtm:0.5.9-SNAPSHOT'
+  compile ('org.jeo:jeo:0-SNAPSHOT') {
+    exclude group: 'org.slf4j', module: 'slf4j-jdk14'
+  }
+  compile ('org.jeo:jeo-carto:0-SNAPSHOT') {
+    exclude group: 'org.slf4j', module: 'slf4j-jdk14'
+  }
+}

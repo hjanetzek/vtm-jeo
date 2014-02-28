@@ -1,0 +1,3 @@
+include ':vtm-jeo'
+include ':vtm-jeo-desktop'
+include ':vtm-jeo-android'
