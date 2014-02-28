@@ -4,3 +4,8 @@ vtm-jeo-android/gen/
 
 build/
 .gradle/
+
+.settings
+.classpath
+.project
+
